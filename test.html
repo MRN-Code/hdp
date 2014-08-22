@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+
+body {
+  width: 720px;
+  margin: 20px auto 20px auto;
+}
+
+#d3 {
+  outline: 1px red solid;
+  width: 287px;
+  overflow: hidden;
+}
+
+#d3 div {
+  width: 5px;
+  height: 5px;
+  background-color: white;
+  outline: 1px black solid;
+  float: left;
+  margin: 1px;
+  display: block;
+}
+
+.tile {
+  shape-rendering: crispEdges;
+}
+
+</style>
+    <head>
+        <meta charset="utf-8">
+        <title>hdp</title>
+        <script src="d3.v3.min.js" charset="utf-8"></script>
+        <script src="rsvp.min.js" charset="utf-8"></script>
+		<script src="dat.gui/build/dat.gui.js" charset="utf-8"></script>
+		<script src="underscore-min.js"></script>
+		<script src="http://d3js.org/colorbrewer.v1.min.js"></script>
+    </head>
+    <body>
+        <div id="sample_target"></div>
+		<script src="hdp.js" charset="utf-8"></script>
+        <script type="text/javascript">
+            var hdp = new HDP({
+                cb: function sampleCallback () { console.log("All data is " +
+                        "loaded and images painted");},
+                target: "#sample_target",
+            });
+        </script>
+    </body>
+</html>
