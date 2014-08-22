@@ -30,7 +30,7 @@
 
 
     /**
-     * Contstructor
+     * Constructor
      */
     function HDP (config) {
         var jsonInputs = {
