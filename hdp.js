@@ -17,10 +17,13 @@
         age,
         gender,
         group,
-        gui, controls,
+        gui, guiBefore,
+        gui_id = 'hdp_gui',
+        controls,
         caps,
         capsg,
         points,
+        id = "hdp",
         color_capsg,
         color_caps,
         color_label,
@@ -34,12 +37,12 @@
      */
     function HDP (config) {
         var jsonInputs = {
-            "hd.json": loaded_hd,
-            "hd_age.json": loaded_hd_age,
-            "hd_caps.json": loaded_hd_caps,
-            "hd_capscore.json": loaded_hd_capscore,
-            "hd_gender.json": loaded_hd_gender,
-            "hdl.json": loaded_hdl
+            "js/vis_src/hdp/hd.json": loaded_hd,
+            "js/vis_src/hdp/hd_age.json": loaded_hd_age,
+            "js/vis_src/hdp/hd_caps.json": loaded_hd_caps,
+            "js/vis_src/hdp/hd_capscore.json": loaded_hd_capscore,
+            "js/vis_src/hdp/hd_gender.json": loaded_hd_gender,
+            "js/vis_src/hdp/hdl.json": loaded_hdl
         },
             loadedPs = [],
             configValue;
@@ -68,6 +71,15 @@
                     case 'cb':
                         cb = configValue;
                         break;
+                    case 'gui_id':
+                        gui_id = configValue;
+                        break;
+                    case 'guiBefore':
+                        guiBefore = !!configValue;
+                        break;
+                    case 'id':
+                        id = configValue;
+                        break;
                     case 'target':
                         domTarget = configValue;
                         if (domTarget.indexOf('#') !== 0) {
@@ -81,7 +93,7 @@
             }
         }
 
-        initPaint();
+        this.initPaint();
         Promise.all(loadedPs)
             .then(execJSONhandlers)
             .then(function userCallback () {
@@ -114,6 +126,17 @@
     };
 
 
+    /**
+     * Returns the DOM object of the target
+     * @return {Object} DOM node
+     */
+    function getTargetNode () {
+        if (domTarget === 'body') return window.document.body;
+        return window.document.getElementById(domTarget.substring(1));
+    }
+
+
+
     var rangesplit = function(v,n){
         var range=d3.max(v)-d3.min(v),
             step=range/n;
@@ -135,11 +158,12 @@
         [130,135,137]
     ];
 
-    function initGUI () {
-        gui = new dat.GUI();
+    HDP.prototype.initGUI = function () {
+        gui = new dat.GUI({autoPlace:false});
         controls = new DCmap();
         gui.add(controls, 'example');
         var c_color = gui.add(controls, 'cGroups', false).name('patient vs. controls');
+        this.chkPatientControls = c_color.domElement.childNodes[0];
         c_color.onChange(function(value) {
             if (value){
                 paint(labels, color_label);
@@ -170,22 +194,29 @@
         c_caps.onChange(function(value) {
             if (value){
                 paint(capsg, color_capsg);
-            }else{
+            } else{
                 wipe();
             }
         });
 
         var n_caps = gui.add(controls, 'cCapscore', false).name('cognitive decline');
+        this.chkCogDecline = n_caps.domElement.childNodes[0];
         n_caps.onChange(function(value) {
             if (value){
                 paint(caps, color_caps);
-            }else{
+            } else{
                 wipe();
             }
         });
-    }
+        gui.domElement.id = gui_id;
+        if (guiBefore) {
+            getTargetNode().insertBefore(gui.domElement, getTargetNode().firstChild);
+        } else {
+            getTargetNode().appendChild(gui.domElement);
+        }
+    };
 
-    function initPaint () {
+    HDP.prototype.initPaint = function () {
         line = d3.svg.line()
                 .x(function(d) {
                     return d[0];
@@ -195,15 +226,18 @@
                 })
                 .interpolate("linear");
         svg = d3.select(domTarget).append("svg")
-                .attr("width", width)
-                .attr("height", height)
+                .attr({
+                    "width": width,
+                    "height": height,
+                    "id": id
+                })
                 .style("position","relative");
         group = svg.append("g")
                 .attr({
                     transform: "translate("+[60,150]+")"
                 });
-        initGUI();
-    }
+        this.initGUI();
+    };
 
 
 
