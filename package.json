@@ -1,0 +1,23 @@
+{
+  "name": "huntington-disease-path-visualizer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "source/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MRN-Code/hdp.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MRN-Code/hdp/issues"
+  },
+  "homepage": "https://github.com/MRN-Code/hdp#readme",
+  "dependencies": {
+    "d3": "^3.5.17",
+    "lodash": "^4.12.0"
+  }
+}
