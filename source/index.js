@@ -2,13 +2,14 @@
 
 var d3 = require('d3');
 var range = require('lodash/range');
+var gui = require('dat.gui');
 
 var width = 600,
     height = 200,
     cb,
     defC = d3.rgb(140,140,140),
     dotR = 3,
-    domTarget = "body",
+    domTarget = 'body',
     inmarg = {top: 10, right: 10, bottom: 10, left: 10},
     labels,
     age,
@@ -20,7 +21,7 @@ var width = 600,
     caps,
     capsg,
     points,
-    id = "hdp",
+    id = 'hdp',
     color_capsg,
     color_caps,
     color_label,
@@ -32,14 +33,14 @@ var width = 600,
 /**
  * Constructor
  */
-function HDP (config) {
+function HDP (config, inputData) {
     var jsonInputs = {
-        "js/vis_src/hdp/hd.json": loaded_hd,
-        "js/vis_src/hdp/hd_age.json": loaded_hd_age,
-        "js/vis_src/hdp/hd_caps.json": loaded_hd_caps,
-        "js/vis_src/hdp/hd_capscore.json": loaded_hd_capscore,
-        "js/vis_src/hdp/hd_gender.json": loaded_hd_gender,
-        "js/vis_src/hdp/hdl.json": loaded_hdl
+        inputData['hd']: loaded_hd,
+        inputData['hd_age']: loaded_hd_age,
+        inputData['hd_caps']: loaded_hd_caps,
+        inputData['hd_capscore']: loaded_hd_capscore,
+        inputData['hd_gender']: loaded_hd_gender,
+        inputData['hdl']: loaded_hdl
     },
     loadedPs = [],
     configValue;
@@ -65,6 +66,7 @@ function HDP (config) {
         if (config.hasOwnProperty(prop)) {
             configValue = config[prop];
             switch(prop) {
+                // User callback
                 case 'cb':
                     cb = configValue;
                     break;
@@ -112,6 +114,7 @@ function execJSONhandlers (execReqs) {
     });
 }
 
+// Control paramaters for GUI
 var DCmap = function() {
     this.example = 'exploring data';
     this.step = 0;
@@ -125,6 +128,7 @@ var DCmap = function() {
 
 /**
  * Returns the DOM object of the target
+ * domTarget is global var
  * @return {Object} DOM node
  */
 function getTargetNode () {
@@ -132,11 +136,13 @@ function getTargetNode () {
     return window.document.getElementById(domTarget.substring(1));
 }
 
-
-
+/**
+ * @param {Array} array to create range {Number} number of steps
+ * @return {Array} array of equal steps over a range given by an input array
+ */
 var rangesplit = function(v,n){
-    var range=d3.max(v)-d3.min(v),
-    step=range/n;
+    var rangeSize=d3.max(v)-d3.min(v),
+    step=rangeSize/n;
     return range(d3.min(v),(n+1)*step,step);
 };
 
@@ -236,7 +242,10 @@ HDP.prototype.initPaint = function () {
     this.initGUI();
 };
 
-
+/**
+ * Callbacks for different data sources
+ * Set values for variables, including labels and colors
+ */
 
 function loaded_hdl (data) {
     labels = data;
@@ -304,6 +313,9 @@ function loaded_hd (data) {
                 .style("fill-opacity", 1.0); });
 }
 
+/**
+ * Sets all circles to default color
+ */
 function paint (value, colscale){
     svg.selectAll("circle")
         .attr("title", function(d) {return d;})
@@ -311,6 +323,9 @@ function paint (value, colscale){
             return d3.rgb(colscale(value[i]));});
 }
 
+/**
+ * Sets all circles to default color
+ */
 function wipe () {
     svg.selectAll("circle")
         .attr("title", "")
