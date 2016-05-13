@@ -34,13 +34,14 @@ var width = 600,
  * Constructor
  */
 function HDP (config, inputData) {
+
     var jsonInputs = {
-        inputData['hd']: loaded_hd,
-        inputData['hd_age']: loaded_hd_age,
-        inputData['hd_caps']: loaded_hd_caps,
-        inputData['hd_capscore']: loaded_hd_capscore,
-        inputData['hd_gender']: loaded_hd_gender,
-        inputData['hdl']: loaded_hdl
+        inputData.hd: loaded_hd,
+        inputData.hd_age: loaded_hd_age,
+        inputData.hd_caps: loaded_hd_caps,
+        inputData.hd_capscore: loaded_hd_capscore,
+        inputData.hd_gender: loaded_hd_gender,
+        inputData.hdl: loaded_hdl
     },
     loadedPs = [],
     configValue;
