@@ -2,7 +2,8 @@
 
 var d3 = require('d3');
 var range = require('lodash/range');
-var gui = require('dat.gui');
+//var gui = require('dat.gui');
+var control = require('control-panel');
 
 var width = 600,
     height = 200,
@@ -29,6 +30,11 @@ var width = 600,
     line,
     svg;
 
+var LABEL_GROUP = 'group',
+    LABEL_AGE = 'age',
+    LABEL_GENDER = 'gender',
+    LABEL_DIS_SEV = 'disease severity',
+    LABEL_COG_DEC = 'cognitive decline';
 
 /**
  * Constructor
@@ -53,6 +59,7 @@ function HDP (config, inputData) {
     loadedPs = [],
     configValue;
 
+    // Load all of the JSON data from files
     // Build array of async fetch promises for all JSON
     for (var dataFile in jsonInputs) {
         if (jsonInputs.hasOwnProperty(dataFile)) {
@@ -75,18 +82,25 @@ function HDP (config, inputData) {
             configValue = config[prop];
             switch(prop) {
                 // User callback
+                // Don't need this now?
                 case 'cb':
                     cb = configValue;
                     break;
+                // DOM element where GUI will sit
+                // Don't need this now?
                 case 'gui_id':
                     gui_id = configValue;
                     break;
+                // Don't need this now?
                 case 'guiBefore':
+                    // Coerce value to Boolean
                     guiBefore = !!configValue;
                     break;
+                // DOM element where visualization will sit
                 case 'id':
-                    id = configValue;
+                    vis_id = configValue;
                     break;
+                // DOM element containing both visualization and GUI
                 case 'target':
                     domTarget = configValue;
                     if (domTarget.indexOf('#') !== 0) {
@@ -123,15 +137,19 @@ function execJSONhandlers (execReqs) {
 }
 
 // Control paramaters for GUI
-var DCmap = function() {
-    this.example = 'exploring data';
-    this.step = 0;
-    this.cGroups = false;
-    this.cAge = false;
-    this.cGender = false;
-    this.cCaps = false;
-    this.cCapscore = false;
-};
+
+var guiControls = [
+    {type: 'checkbox', label: LABEL_GROUP, initial: false},
+    {type: 'checkbox', label: LABEL_AGE, initial: false},
+    {type: 'checkbox', label: LABEL_GENDER, initial: false},
+    {type: 'checkbox', label: LABEL_DIS_SEV, initial: false},
+    {type: 'checkbox', label: LABEL_COG_DEC, initial: false},
+];
+
+// Optional GUI parameters
+var guiOptParams = {theme: 'dark',
+                    position: 'top-left',
+                    title: 'exploring data'};
 
 
 /**
@@ -169,56 +187,45 @@ var colors = [
     [130,135,137]
 ];
 
+/**
+ * Callback function for control panel. Calls controlCallback to manage true/false values.
+ * @param data: {JSON} state of all inputs that have changed on control panel
+ */
+function panelCallback (data) {
+
+    if (data.hasOwnProperty(LABEL_GROUP)) {
+        controlCallback(data[LABEL_GROUP], labels, color_label);
+    } else if(data.hasOwnProperty(LABEL_AGE)) {
+        controlCallback(data[LABEL_AGE], age, color_age);
+    } else if(data.hasOwnProperty(LABEL_GENDER)) {
+        controlCallback(data[LABEL_GENDER], gender, color_label);
+    } else if(data.hasOwnProperty(LABEL_DIS_SEV)) {
+        controlCallback(data[LABEL_DIS_SEV], capsg, color_capsg);
+    } else if(data.hasOwnProperty(LABEL_COG_DEC)) {
+        controlCallback(data[LABEL_COG_DEC], caps, color_caps);
+    } else {
+        throw new Error("Invalid callback key passed (" +
+                data + ")");
+    }
+}
+
+/**
+ * Callback function for control panel. Calls controlCallback to manage true/false values.
+ * @param data: {JSON} state of all inputs that have changed on control panel
+ */
+function controlCallback (inputValue, colorValue, colorScale) {
+    if (inputValue) {
+        paint(colorValue, colorScale);
+    } else {
+        wipe();
+    }
+}
+
 HDP.prototype.initGUI = function () {
-    gui = new dat.GUI({autoPlace:false});
-    controls = new DCmap();
-    gui.add(controls, 'example');
-    var c_color = gui.add(controls, 'cGroups', false).name('patient vs. controls');
-    this.chkPatientControls = c_color.domElement.childNodes[0];
-    c_color.onChange(function(value) {
-        if (value){
-            paint(labels, color_label);
-        }else{
-            wipe();
-        }
-    });
+    //gui = new dat.GUI({autoPlace:false});
+    panel = control(guiControls, guiOptParams);
+    panel.on('input', panelCallback(data))
 
-    var c_age = gui.add(controls, 'cAge', false).name('age');
-    c_age.onChange(function(value) {
-        if (value){
-            paint(age, color_age);
-        }else{
-            wipe();
-        }
-    });
-
-    var c_gender = gui.add(controls, 'cGender', false).name('gender');
-    c_gender.onChange(function(value) {
-        if (value){
-            paint(gender, color_label);
-        }else{
-            wipe();
-        }
-    });
-
-    var c_caps = gui.add(controls, 'cCaps', false).name('disease severity');
-    c_caps.onChange(function(value) {
-        if (value){
-            paint(capsg, color_capsg);
-        } else{
-            wipe();
-        }
-    });
-
-    var n_caps = gui.add(controls, 'cCapscore', false).name('cognitive decline');
-    this.chkCogDecline = n_caps.domElement.childNodes[0];
-    n_caps.onChange(function(value) {
-        if (value){
-            paint(caps, color_caps);
-        } else{
-            wipe();
-        }
-    });
     gui.domElement.id = gui_id;
     if (guiBefore) {
         getTargetNode().insertBefore(gui.domElement, getTargetNode().firstChild);
@@ -240,7 +247,7 @@ HDP.prototype.initPaint = function () {
         .attr({
             "width": width,
             "height": height,
-            "id": id
+            "id": vis_id
         })
     .style("position","relative");
     group = svg.append("g")
@@ -322,7 +329,7 @@ function loaded_hd (data) {
 }
 
 /**
- * Sets all circles to default color
+ * Sets circle to color on basis of value
  */
 function paint (value, colscale){
     svg.selectAll("circle")
