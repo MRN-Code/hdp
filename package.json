@@ -18,7 +18,7 @@
   "homepage": "https://github.com/MRN-Code/hdp#readme",
   "dependencies": {
     "d3": "^3.5.17",
-    "dat.gui": "^0.6.1",
+    "control-panel": "^1.2.0",
     "lodash": "^4.12.0"
   }
 }
